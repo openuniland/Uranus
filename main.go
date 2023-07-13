@@ -1,32 +1,28 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/go-chi/chi/v5"
+	"github.com/gin-gonic/gin"
 )
 
 func main() {
-	var r = chi.NewRouter()
 
-	r.Get("/health", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(200)
+	envPort := "8080"
+
+	if envPort := os.Getenv("PORT"); envPort == "" {
+		log.Println("PORT environment variable not set, defaulting	 to 8080")
+	}
+	log.Println("Starting server on port", envPort)
+
+	r := gin.Default()
+	r.GET("/ping", func(c *gin.Context) {
+		c.JSON(http.StatusOK, gin.H{
+			"message": "pong",
+		})
 	})
 
-	var port = envPortOr("3000")
-
-	fmt.Println("starting server on port " + port[1:])
-	log.Fatal(http.ListenAndServe(port, r))
-}
-
-func envPortOr(port string) string {
-	// If `PORT` variable in environment exists, return it
-	if envPort := os.Getenv("PORT"); envPort != "" {
-		return ":" + envPort
-	}
-	// Otherwise, return the value of `port` variable from function argument
-	return ":" + port
+	log.Fatal(http.ListenAndServe(":"+envPort, r))
 }
